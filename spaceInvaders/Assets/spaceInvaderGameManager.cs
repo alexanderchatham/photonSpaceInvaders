@@ -17,6 +17,7 @@ using Photon.Realtime;
 using Photon.Pun.UtilityScripts;
 using Hashtable = ExitGames.Client.Photon.Hashtable;
 using Photon.Pun;
+using TMPro;
     public class spaceInvaderGameManager : MonoBehaviourPunCallbacks
     {
         public static spaceInvaderGameManager Instance = null;
@@ -89,24 +90,9 @@ using Photon.Pun;
             }
 
 
-
+        enemiesSpawned = true;
     }
-
-        private IEnumerator EndOfGame(string winner, int score)
-        {
-            float timer = 5.0f;
-
-            while (timer > 0.0f)
-            {
-                InfoText.text = string.Format("Player {0} won with {1} points.\n\n\nReturning to login screen in {2} seconds.", winner, score, timer.ToString("n2"));
-
-                yield return new WaitForEndOfFrame();
-
-                timer -= Time.deltaTime;
-            }
-
-            PhotonNetwork.LeaveRoom();
-        }
+    public TextMeshProUGUI endText;
 
         #endregion
 
@@ -137,11 +123,7 @@ using Photon.Pun;
 
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
-            if (changedProps.ContainsKey(spaceInvadersGame.PLAYER_LIVES))
-            {
-                CheckEndOfGame();
-                return;
-            }
+            CheckEndOfGame();
 
             if (!PhotonNetwork.IsMasterClient)
             {
@@ -166,12 +148,12 @@ using Photon.Pun;
                 {
                     // not all players loaded yet. wait:
                     Debug.Log("setting text waiting for players! ", this.InfoText);
-                    InfoText.text = "Waiting for other players...";
+                    //InfoText.text = "Waiting for other players...";
                 }
             }
 
         }
-
+        
         #endregion
         public Transform[] spawnPoints;
 
@@ -194,6 +176,7 @@ using Photon.Pun;
                 StartCoroutine(SpawnBadGuys());
             }
         }
+    public bool enemiesSpawned = false;
     enum EnemyState
     {
         left,
@@ -219,7 +202,7 @@ using Photon.Pun;
         if (pos.x > side && current == EnemyState.right)
             hitSide();
     }
-
+    
     Enemy[] enemies;
     public void FixedUpdate()
     {
@@ -278,7 +261,7 @@ using Photon.Pun;
 
         private void CheckEndOfGame()
         {
-            bool allDestroyed = true;
+            bool playersDied = true;
 
             foreach (Player p in PhotonNetwork.PlayerList)
             {
@@ -287,35 +270,65 @@ using Photon.Pun;
                 {
                     if ((int)lives > 0)
                     {
-                        allDestroyed = false;
+                        playersDied = false;
                         break;
                     }
                 }
             }
 
-            if (allDestroyed)
+            if (playersDied||enemiesSpawned && enemies.Length == 0 )
             {
                 if (PhotonNetwork.IsMasterClient)
                 {
                     StopAllCoroutines();
                 }
+            photonView.RPC("showEndPanel", RpcTarget.AllViaServer);
+        }
+        }
+    public void leaveGame()
+    {
+        PhotonNetwork.LeaveRoom();
+    }
+    [PunRPC]
+    public void showEndPanel()
+    {
 
-                string winner = "";
-                int score = -1;
-
-                foreach (Player p in PhotonNetwork.PlayerList)
+        string winner = "";
+        int score = -1;
+        int playercounter = 0;
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            if (playercounter == 0)
+            {
+                player1.text = p.NickName + "\n" + p.GetScore();
+                playercounter++;
+                score = p.GetScore();
+            }
+            else if (playercounter == 1)
+            {
+                player2.text = p.NickName + "\n" + p.GetScore();
+                if (p.GetScore() > score)
                 {
-                    if (p.GetScore() > score)
-                    {
-                        winner = p.NickName;
-                        score = p.GetScore();
-                    }
+                    endText.text = "Player 2 Wins!";
+                    Debug.Log("Player 2 Wins!");
                 }
-
-                StartCoroutine(EndOfGame(winner, score));
+                else if (p.GetScore() < score)
+                {
+                    endText.text = "Player 1 Wins!";
+                    Debug.Log("Player 1 Wins!");
+                }
+                else if (p.GetScore() == score)
+                {
+                    endText.text = "It's a tie!";
+                    Debug.Log("It's a tie!");
+                }
             }
         }
-
+        endPanel.SetActive(true);
+    }
+    public GameObject endPanel;
+    public TextMeshProUGUI player1;
+    public TextMeshProUGUI player2;
         private void OnCountdownTimerIsExpired()
         {
             StartGame();

@@ -17,7 +17,6 @@ using ExitGames.Client.Photon;
 using Photon.Realtime;
 using UnityEngine;
 using UnityEngine.UI;
-
 namespace Photon.Pun.UtilityScripts
 {
     /// <summary>This is a basic, network-synced CountdownTimer based on properties.</summary>
