@@ -27,7 +27,10 @@ using Photon.Pun;
         [Header("Room List Panel")]
         public GameObject RoomListPanel;
 
-        public GameObject RoomListContent;
+    [Header("Credits Panel")]
+    public GameObject CreditsPanel;
+
+    public GameObject RoomListContent;
         public GameObject RoomListEntryPrefab;
 
         [Header("Inside Room Panel")]
@@ -337,7 +340,14 @@ using Photon.Pun;
         {
             StartGameButton.gameObject.SetActive(CheckPlayersReady());
         }
-
+    public void setCredits()
+    {
+        SetActivePanel("CreditsPanel");
+    }
+    public void setLogin()
+    {
+        SetActivePanel("LoginPanel");
+    }
         private void SetActivePanel(string activePanel)
         {
             LoginPanel.SetActive(activePanel.Equals(LoginPanel.name));
@@ -346,6 +356,7 @@ using Photon.Pun;
             JoinRandomRoomPanel.SetActive(activePanel.Equals(JoinRandomRoomPanel.name));
             RoomListPanel.SetActive(activePanel.Equals(RoomListPanel.name));    // UI should call OnRoomListButtonClicked() to activate this
             InsideRoomPanel.SetActive(activePanel.Equals(InsideRoomPanel.name));
+            CreditsPanel.SetActive(activePanel.Equals(CreditsPanel.name));
         }
 
         private void UpdateCachedRoomList(List<RoomInfo> roomList)

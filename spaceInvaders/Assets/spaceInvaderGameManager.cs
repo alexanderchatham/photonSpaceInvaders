@@ -118,6 +118,7 @@ using TMPro;
 
         public override void OnPlayerLeftRoom(Player otherPlayer)
         {
+            
             CheckEndOfGame();
         }
 
@@ -202,7 +203,6 @@ using TMPro;
         if (pos.x > side && current == EnemyState.right)
             hitSide();
     }
-    
     Enemy[] enemies;
     public void FixedUpdate()
     {
@@ -325,7 +325,21 @@ using TMPro;
             }
         }
         endPanel.SetActive(true);
-    }
+        foreach (Player p in PhotonNetwork.PlayerList)
+        {
+            if (p.IsLocal)
+            {
+                if (p.GetPlayerNumber() == 0)
+                {
+                    player1.transform.parent.GetComponent<Outline>().enabled = true;
+                }
+                if (p.GetPlayerNumber() == 1)
+                {
+                    player2.transform.parent.GetComponent<Outline>().enabled = true;
+                }
+            }
+        }
+        }
     public GameObject endPanel;
     public TextMeshProUGUI player1;
     public TextMeshProUGUI player2;
