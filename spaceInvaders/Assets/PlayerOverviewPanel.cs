@@ -26,7 +26,7 @@ namespace Photon.Pun.Demo.Asteroids
         private Dictionary<int, GameObject> playerListEntries;
 
         #region UNITY
-
+        bool gameStarted = false;
         public void Awake()
         {
             playerListEntries = new Dictionary<int, GameObject>();
@@ -41,6 +41,7 @@ namespace Photon.Pun.Demo.Asteroids
 
                 playerListEntries.Add(p.ActorNumber, entry);
             }
+            gameStarted = true;
         }
 
         #endregion
@@ -57,6 +58,20 @@ namespace Photon.Pun.Demo.Asteroids
             }
         }
 
+        public override void OnPlayerEnteredRoom(Player p)
+        {
+            if (gameStarted)
+            {
+                GameObject entry = Instantiate(PlayerOverviewEntryPrefab);
+                entry.transform.SetParent(gameObject.transform);
+                entry.transform.localScale = Vector3.one;
+                entry.GetComponent<Text>().color = AsteroidsGame.GetColor(p.GetPlayerNumber());
+                entry.GetComponent<Text>().text = string.Format("{0}\nScore: {1}\nLives: {2}", p.NickName, p.GetScore(), AsteroidsGame.PLAYER_MAX_LIVES);
+
+                playerListEntries.Add(p.ActorNumber, entry);
+            }
+            base.OnPlayerEnteredRoom(p);
+        }
         public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             GameObject entry;
