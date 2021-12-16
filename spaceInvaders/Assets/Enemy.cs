@@ -17,6 +17,7 @@ using Photon.Pun;
     public class Enemy : MonoBehaviour
     {
         public string color;
+    public int colorint;
         public int lives = 1;
         private bool isDestroyed;
         public Material[] materials;
@@ -36,8 +37,38 @@ using Photon.Pun;
         
             
         }
+
+    public void syncEnemies()
+    {
+            photonView.RPC("setColor", RpcTarget.AllViaServer, Random.Range(colorint, lives));
+
+    }
+    [PunRPC]
+    public void syncColor(int i,int _lives)
+    {
+        switch (i)
+        {
+            case 1:
+                GetComponent<Renderer>().material = materials[0];
+                color = "green";
+                break;
+            case 2:
+                GetComponent<Renderer>().material = materials[1];
+                color = "blue";
+                break;
+            case 3:
+                GetComponent<Renderer>().material = materials[2];
+                color = "red";
+                break;
+
+
+        }
+                lives = _lives;
+
+    }
     private void Start()
     {
+        transform.parent = GameObject.FindGameObjectWithTag("Holder").transform;
         if (PhotonNetwork.IsMasterClient)
         {
 
@@ -47,6 +78,7 @@ using Photon.Pun;
     [PunRPC]
         public void setColor(int i)
     {
+        colorint = i;
         switch (i)
         {
             case 1:

@@ -74,7 +74,7 @@ using TMPro;
 
                 for(int j = 0; j < numberPerRow;j++) 
                     {
-                        PhotonNetwork.InstantiateRoomObject("Enemy", new Vector3((-5*xSpacing)+j*2*xSpacing,0,yStart - i *ySpacing), Quaternion.Euler(0,180,0), 0, null).transform.parent = EnemyHolder;
+                        PhotonNetwork.InstantiateRoomObject("Enemy", new Vector3((-5*xSpacing)+j*2*xSpacing,0,yStart - i *ySpacing), Quaternion.Euler(0,180,0), 0, null);
                         yield return new WaitForEndOfFrame();
                     }
                 }
@@ -82,15 +82,20 @@ using TMPro;
                 {
                 for(int j = 0; j < numberPerRow-1;j++) 
                     {
-                        PhotonNetwork.InstantiateRoomObject("Enemy", new Vector3((-4*xSpacing) + j*2 * xSpacing, 0,yStart - i *ySpacing), Quaternion.Euler(0, 180, 0), 0, null).transform.parent = EnemyHolder;
+                        PhotonNetwork.InstantiateRoomObject("Enemy", new Vector3((-4*xSpacing) + j*2 * xSpacing, 0,yStart - i *ySpacing), Quaternion.Euler(0, 180, 0), 0, null);
                         yield return new WaitForEndOfFrame();
                     }
 
                 }
             }
 
-
+        photonView.RPC("setEnemiesSpawned", RpcTarget.AllViaServer);
+    }
+    [PunRPC]
+    void setEnemiesSpawned()
+    {
         enemiesSpawned = true;
+
     }
     public TextMeshProUGUI endText;
 
@@ -118,11 +123,28 @@ using TMPro;
 
         public override void OnPlayerLeftRoom(Player otherPlayer)
         {
-            
-            CheckEndOfGame();
+            PhotonNetwork.SetMasterClient(PhotonNetwork.PlayerList[0]);
+            PhotonNetwork.CurrentRoom.IsOpen = true;
+            PhotonNetwork.CurrentRoom.IsVisible = true;
+
         }
 
-        public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        enemies = FindObjectsOfType<Enemy>();
+        foreach (var e in enemies)
+        {
+            e.syncEnemies();
+        }
+        base.OnPlayerEnteredRoom(newPlayer);
+    }
+    public override void OnJoinedRoom()
+    {
+        StartGame();
+        base.OnJoinedRoom();
+    }
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
             CheckEndOfGame();
 
@@ -163,11 +185,13 @@ using TMPro;
         {
             Debug.Log("StartGame!");
 
-            // on rejoin, we have to figure out if the spaceship exists or not
-            // if this is a rejoin (the ship is already network instantiated and will be setup via event) we don't need to call PN.Instantiate
-
-
-            Vector3 position = spawnPoints[PhotonNetwork.LocalPlayer.GetPlayerNumber()].position;
+        // on rejoin, we have to figure out if the spaceship exists or not
+        // if this is a rejoin (the ship is already network instantiated and will be setup via event) we don't need to call PN.Instantiate
+        Vector3 position;
+        if (PhotonNetwork.LocalPlayer.GetPlayerNumber() >= 2)
+            position = spawnPoints[PhotonNetwork.LocalPlayer.GetPlayerNumber()].position;
+        else
+            position = spawnPoints[0].position;
             Quaternion rotation = Quaternion.identity;
 
             PhotonNetwork.Instantiate("Spaceship", position, rotation, 0);      // avoid this call on rejoin (ship was network instantiated before)
@@ -225,9 +249,15 @@ using TMPro;
                     if (downTimer < 0f)
                     {
                         if (last == EnemyState.right)
+                        {
                             current = EnemyState.left;
+                            photonView.RPC("changeState", RpcTarget.AllViaServer, 0);
+                        }
                         else
+                        {
                             current = EnemyState.right;
+                            photonView.RPC("changeState", RpcTarget.AllViaServer, 1);
+                        }
                     }
                     break;
                 case EnemyState.left:
@@ -237,6 +267,22 @@ using TMPro;
                     EnemyHolder.Translate(Vector3.right * Time.deltaTime * enemyMoveSpeed);
                     break;
             }
+        }
+    }
+    [PunRPC]
+    void changeState(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                current = EnemyState.left;
+                break;
+            case 1:
+                current = EnemyState.right;
+                break;
+            case 2:
+                current = EnemyState.down;
+                break;
         }
     }
     private bool CheckAllPlayerLoadedLevel()
@@ -275,7 +321,12 @@ using TMPro;
                     }
                 }
             }
-
+            if(enemies == null)
+        {
+            enemies = FindObjectsOfType<Enemy>();
+            if (enemies.Length == 0)
+                Debug.Log("no enemies found");
+        }
             if (playersDied||enemiesSpawned && enemies.Length == 0 )
             {
                 if (PhotonNetwork.IsMasterClient)
@@ -325,19 +376,21 @@ using TMPro;
             }
         }
         endPanel.SetActive(true);
+        playercounter = 0;
         foreach (Player p in PhotonNetwork.PlayerList)
         {
             if (p.IsLocal)
             {
-                if (p.GetPlayerNumber() == 0)
+                if (playercounter == 0)
                 {
                     player1.transform.parent.GetComponent<Outline>().enabled = true;
                 }
-                if (p.GetPlayerNumber() == 1)
+                if (playercounter == 1)
                 {
                     player2.transform.parent.GetComponent<Outline>().enabled = true;
                 }
             }
+            playercounter++;
         }
         }
     public GameObject endPanel;

@@ -362,7 +362,7 @@ GameObject:
   - component: {fileID: 260639981}
   m_Layer: 0
   m_Name: Enemy Holder
-  m_TagString: Untagged
+  m_TagString: Holder
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -626,6 +626,7 @@ GameObject:
   - component: {fileID: 964925489}
   - component: {fileID: 964925490}
   - component: {fileID: 964925491}
+  - component: {fileID: 964925492}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -725,6 +726,18 @@ MonoBehaviour:
   sceneViewId: 1
   InstantiationId: 0
   isRuntimeInstantiated: 0
+--- !u!114 &964925492
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 964925485}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fb56298ed7a92c0408c74e4dd9803e43, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1337390690
 GameObject:
   m_ObjectHideFlags: 0

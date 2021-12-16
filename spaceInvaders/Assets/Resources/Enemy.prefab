@@ -171,6 +171,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   color: 
+  colorint: 0
   lives: 1
   materials:
   - {fileID: 2100000, guid: d28a414a15466a444ba5ff4eb931dc37, type: 2}
