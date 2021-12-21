@@ -146,12 +146,12 @@ using TMPro;
     }
     public override void OnPlayerPropertiesUpdate(Player targetPlayer, Hashtable changedProps)
         {
-            CheckEndOfGame();
 
             if (!PhotonNetwork.IsMasterClient)
             {
                 return;
             }
+            CheckEndOfGame();
 
 
             // if there was no countdown yet, the master client (this one) waits until everyone loaded the level and sets a timer start
@@ -307,21 +307,22 @@ using TMPro;
 
         private void CheckEndOfGame()
         {
-            bool playersDied = true;
+            bool playersDied = false;
 
             foreach (Player p in PhotonNetwork.PlayerList)
             {
                 object lives;
                 if (p.CustomProperties.TryGetValue(spaceInvadersGame.PLAYER_LIVES, out lives))
                 {
-                    if ((int)lives > 0)
+                    if ((int)lives == 0)
                     {
-                        playersDied = false;
+                    Debug.Log("Players are dead");
+                        playersDied = true;
                         break;
                     }
                 }
             }
-            if(enemies == null)
+            if(enemies == null || enemies.Length == 0)
         {
             enemies = FindObjectsOfType<Enemy>();
             if (enemies.Length == 0)
